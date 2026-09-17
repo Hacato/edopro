@@ -32,6 +32,7 @@ This represents our vision for all of our projects and work and recognizes the c
 
 ## License
 
+
 EDOPro is free/libre and open source software licensed under the GNU Affero General Public License, version 3 or later.
 Dependencies and resources may be provided under different licenses.
 Please see [LICENSE](https://github.com/edo9300/edopro/blob/master/LICENSE) and [COPYING](https://github.com/edo9300/edopro/blob/master/COPYING) for more details.
