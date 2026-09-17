@@ -225,7 +225,8 @@ catch(...) { what = def; }
 			BufferIO::EncodeUTF16(mainGame->ebServerName->getText(), cscg.name, 20);
 			BufferIO::EncodeUTF16(mainGame->ebServerPass->getText(), cscg.pass, 20);
 			mainGame->dInfo.secret.pass = mainGame->ebServerPass->getText();
-			cscg.info.rule = mainGame->cbRule->getSelected();
+			const auto selected_rule = mainGame->cbRule->getSelected();
+			cscg.info.rule = (selected_rule == 2) ? 5 : selected_rule;
 			cscg.info.mode = 0;
 			TOI(cscg.info.start_hand, mainGame->ebStartHand->getText(), 5);
 			TOI(cscg.info.start_lp, mainGame->ebStartLP->getText(), 8000);
