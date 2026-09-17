@@ -3480,8 +3480,9 @@ void Game::ReloadCBDuelRule(irr::gui::IGUIComboBox* cb) {
 }
 void Game::ReloadCBRule() {
 	cbRule->clear();
-	for (auto i = 1900; i <= 1904; ++i)
-		cbRule->addItem(gDataManager->GetSysString(i).data());
+	cbRule->addItem(gDataManager->GetSysString(1900).data()); // OCG
+	cbRule->addItem(gDataManager->GetSysString(1901).data()); // TCG
+	cbRule->addItem(gDataManager->GetSysString(1905).data()); // Customs
 }
 void Game::ReloadCBCurrentSkin() {
 	gSettings.cbCurrentSkin->clear();
