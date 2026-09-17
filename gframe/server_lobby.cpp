@@ -77,7 +77,10 @@ void ServerLobby::FillOnlineRooms() {
 			if(team2 && room.info.team2 != team2)
 				continue;
 			if(searchRules > 0) {
-				if(searchRules != room.info.rule + 1)
+				// Filter entries: 1 = OCG, 2 = TCG, 3 = Customs.
+				// Customs uses protocol Allowed Cards value 5.
+				const int selectedRule = (searchRules == 3) ? 5 : (searchRules - 1);
+				if(selectedRule != room.info.rule)
 					continue;
 			}
 			/*add mutex for banlist access*/
