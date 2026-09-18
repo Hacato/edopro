@@ -226,7 +226,10 @@ catch(...) { what = def; }
 			BufferIO::EncodeUTF16(mainGame->ebServerPass->getText(), cscg.pass, 20);
 			mainGame->dInfo.secret.pass = mainGame->ebServerPass->getText();
 			const auto selected_rule = mainGame->cbRule->getSelected();
-			cscg.info.rule = (selected_rule == 2) ? 5 : selected_rule;
+			// Allowed Cards dropdown:
+			// 0 = OCG, 1 = TCG, 2 = OCG/TCG, 3 = Customs, 4 = Anything goes
+			// Protocol values remain 0, 1, 2, 5, 4 respectively.
+			cscg.info.rule = (selected_rule == 3) ? 5 : selected_rule;
 			cscg.info.mode = 0;
 			TOI(cscg.info.start_hand, mainGame->ebStartHand->getText(), 5);
 			TOI(cscg.info.start_lp, mainGame->ebStartLP->getText(), 8000);
