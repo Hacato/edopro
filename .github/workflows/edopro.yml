@@ -58,7 +58,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ false }}
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Upload Windows build
