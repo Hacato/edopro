@@ -3465,7 +3465,9 @@ void Game::ReloadCBFilterRule() {
 	cbFilterRule->addItem(epro::format(L"[{}]", gDataManager->GetSysString(1225)).data());
 	cbFilterRule->addItem(gDataManager->GetSysString(1900).data()); // OCG
 	cbFilterRule->addItem(gDataManager->GetSysString(1901).data()); // TCG
+	cbFilterRule->addItem(gDataManager->GetSysString(1902).data()); // OCG/TCG
 	cbFilterRule->addItem(gDataManager->GetSysString(1905).data()); // Customs
+	cbFilterRule->addItem(gDataManager->GetSysString(1904).data()); // Anything goes
 }
 void Game::ReloadCBDuelRule(irr::gui::IGUIComboBox* cb) {
 	if (!cb) cb = cbDuelRule;
@@ -3483,7 +3485,9 @@ void Game::ReloadCBRule() {
 	cbRule->clear();
 	cbRule->addItem(gDataManager->GetSysString(1900).data()); // OCG
 	cbRule->addItem(gDataManager->GetSysString(1901).data()); // TCG
+	cbRule->addItem(gDataManager->GetSysString(1902).data()); // OCG/TCG
 	cbRule->addItem(gDataManager->GetSysString(1905).data()); // Customs
+	cbRule->addItem(gDataManager->GetSysString(1904).data()); // Anything goes
 }
 void Game::ReloadCBCurrentSkin() {
 	gSettings.cbCurrentSkin->clear();
