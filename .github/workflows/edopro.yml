@@ -58,9 +58,15 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
+    - name: Upload Windows build
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: windows
+        path: deploy/
     - name: Log Failure
       uses: sarisia/actions-status-discord@v1
       if: failure()
@@ -134,7 +140,7 @@ jobs:
         export CV2PDB="docker run --rm --volume $PWD:/work ghcr.io/projectignis/cv2pdb_builder:master"
         ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - uses: actions/upload-artifact@v6
@@ -199,7 +205,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
@@ -255,7 +261,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
@@ -311,7 +317,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
@@ -367,7 +373,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
@@ -431,7 +437,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Log Failure
@@ -512,7 +518,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - uses: actions/upload-artifact@v6
@@ -569,7 +575,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Delete artifacts
@@ -662,7 +668,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - uses: actions/upload-artifact@v6
@@ -722,7 +728,7 @@ jobs:
       shell: bash
       run: ./travis/predeploy.sh
     - name: Deploy
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      if: ${{ false }}
       shell: bash
       run: ./travis/deploy.sh
     - name: Delete artifacts
