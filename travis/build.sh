@@ -19,10 +19,10 @@ fi
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	if [[ -z "${VS_GEN:-""}" ]]; then
 		./premake5 vs2017 $BUNDLED_FONT --no-core=true --oldwindows=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url=\"$UPDATE_URL\"
-		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:minimal -p:EchoOff=true
+		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygopro -verbosity:minimal -p:EchoOff=true
 	else
 		./premake5 $VS_GEN $BUNDLED_FONT --no-core=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url=\"$UPDATE_URL\"
-		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:minimal -p:EchoOff=true
+		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygopro -verbosity:minimal -p:EchoOff=true
 	fi
 	exit 0
 fi
