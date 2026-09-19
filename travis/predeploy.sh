@@ -50,9 +50,7 @@ function strip_if_exists {
 function bundle_if_exists {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1.app ]]; then
         mkdir -p deploy/$1.app/Contents/MacOS
-        # Binary seems to be incorrectly named with the current premake
         cp bin/$ARCH/$BUILD_CONFIG/$1.app deploy/$1.app/Contents/MacOS/EDOPro
-        # dylibbundler -x deploy/$1.app/Contents/MacOS/$1 -b -d deploy/$1.app/Contents/Frameworks/ -p @executable_path/../Frameworks/ -cd
 
         mkdir -p deploy/$1.app/Contents/Resources
         cp gframe/ygopro.icns deploy/$1.app/Contents/Resources/edopro.icns
@@ -60,7 +58,6 @@ function bundle_if_exists {
 
         if [[ -f bin/$ARCH/$BUILD_CONFIG/discord-launcher ]]; then
             mkdir -p deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
-            # Binary is named correctly and does not require external dylibs
             cp bin/$ARCH/$BUILD_CONFIG/discord-launcher deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
             defaults write "$PWD/deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/Info.plist" "CFBundleIdentifier" "io.github.edo9300.$1.discord"
         fi
@@ -70,20 +67,13 @@ function bundle_if_exists {
 function bundle_if_exists_ios {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1.app ]]; then
         mkdir -p deploy/$1.app
-        # Binary seems to be incorrectly named with the current premake
         cp bin/$ARCH/$BUILD_CONFIG/$1.app deploy/$1.app/$1
-
-        # Fakesign binary
         ldid -S deploy/$1.app/$1
-
         cp -r ios-assets/* deploy/$1.app/
         cp gframe/ios-Info.plist deploy/$1.app/Info.plist
-
         mkdir -p deploy/Payload
         cp -r deploy/$1.app deploy/Payload/EDOPro.app
-
         rcodesign sign deploy/Payload/EDOPro.app
-
         cd deploy
         zip -0 -y -r EDOPro.ipa Payload
         rm -rf Payload
@@ -117,12 +107,24 @@ if [[ "$PLATFORM" == "windows" ]]; then
 		7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
 
 		# Generate the MD5 required by EDOPro's ClientUpdater.
-		# Write only the 32-character digest so the server can use it directly.
 		certutil -hashfile realm-of-kings-windows.zip MD5 \
 			| grep -E '^[0-9A-Fa-f ]{32,}$' \
 			| tr -d ' \r\n' \
 			| tr 'A-F' 'a-f' \
 			> realm-of-kings-windows.zip.md5
+
+		# Generate updater metadata from this exact build.
+		# Multirole can use this same metadata when answering /client-update.
+		UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
+		cat > update.json <<EOF
+[
+  {
+    "name": "realm-of-kings-windows.zip",
+    "url": "https://raw.githubusercontent.com/Hacato/Realm-Of-Kings-Client/travis-windows/realm-of-kings-windows.zip",
+    "md5": "${UPDATE_MD5}"
+  }
+]
+EOF
 
 		cd ..
 	fi
@@ -140,16 +142,10 @@ if [[ "$PLATFORM" == "linux" ]]; then
 	compress_if_exist ygoprodll
 fi
 if [[ "$PLATFORM" == "macosx" ]]; then
-    # strip_if_exists discord-launcher
-	# strip_if_exists ygopro.app
 	bundle_if_exists ygopro
-	# strip_if_exists ygoprodll.app
 	bundle_if_exists ygoprodll
 fi
 if [[ "$PLATFORM" == "ios" ]]; then
-    # strip_if_exists discord-launcher
-	# strip_if_exists ygopro.app
 	bundle_if_exists_ios ygopro
-	# strip_if_exists ygoprodll.app
 	bundle_if_exists_ios ygoprodll
 fi
