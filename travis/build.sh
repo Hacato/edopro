@@ -7,6 +7,15 @@ FIELDS_URL=${FIELDS_URL:-""}
 COVERS_URL=${COVERS_URL:-""}
 DISCORD_APP_ID=${DISCORD_APP_ID:-""}
 UPDATE_URL=${UPDATE_URL:-""}
+
+# Realm of Kings updater diagnostic
+# Does NOT print the URL itself.
+if [[ -n "$UPDATE_URL" ]]; then
+	echo "REALM CHECK: UPDATE_URL is SET"
+else
+	echo "REALM CHECK: UPDATE_URL is EMPTY"
+fi
+
 BUILD_COMMIT=${GITHUB_SHA:-""}
 ARCH=${ARCH:-"x64"}
 TARGET_OS=${TARGET_OS:-""}
