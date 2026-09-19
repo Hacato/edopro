@@ -637,10 +637,23 @@ namespace ygo {
 			}
 			return ret;
 		};
-		static const std::string agent = epro::format("EDOPro-" OSSTRING "-" STR(EDOPRO_VERSION_MAJOR) "." STR(EDOPRO_VERSION_MINOR) "." STR(EDOPRO_VERSION_PATCH)" {}",
-													  EscapeUTF8(Utils::OSOperator->getOperatingSystemVersion()));
+
+#ifdef REALM_BUILD_COMMIT
+		static const std::string agent = epro::format(
+			"EDOPro-" OSSTRING "-" STR(EDOPRO_VERSION_MAJOR) "." STR(EDOPRO_VERSION_MINOR) "." STR(EDOPRO_VERSION_PATCH) "-RealmOfKings-{} {}",
+			REALM_BUILD_COMMIT,
+			EscapeUTF8(Utils::OSOperator->getOperatingSystemVersion())
+		);
+#else
+		static const std::string agent = epro::format(
+			"EDOPro-" OSSTRING "-" STR(EDOPRO_VERSION_MAJOR) "." STR(EDOPRO_VERSION_MINOR) "." STR(EDOPRO_VERSION_PATCH) " {}",
+			EscapeUTF8(Utils::OSOperator->getOperatingSystemVersion())
+		);
+#endif
+
 		return agent;
 	}
+
 	epro::path_string Utils::GetAbsolutePath(epro::path_stringview path) {
 #if EDOPRO_WINDOWS
 		auto len = GetFullPathName(path.data(), 0, nullptr, nullptr);
