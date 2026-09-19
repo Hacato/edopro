@@ -115,6 +115,15 @@ if [[ "$PLATFORM" == "windows" ]]; then
 	if [[ -f deploy/ygoprodll.exe ]]; then
 		cd deploy
 		7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
+
+		# Generate the MD5 required by EDOPro's ClientUpdater.
+		# Write only the 32-character digest so the server can use it directly.
+		certutil -hashfile realm-of-kings-windows.zip MD5 \
+			| grep -E '^[0-9A-Fa-f ]{32,}$' \
+			| tr -d ' \r\n' \
+			| tr 'A-F' 'a-f' \
+			> realm-of-kings-windows.zip.md5
+
 		cd ..
 	fi
 fi
