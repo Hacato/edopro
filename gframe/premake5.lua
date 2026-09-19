@@ -45,7 +45,7 @@ local ygopro_config=function(static_core)
 		defines { "UPDATE_URL=" .. _OPTIONS["update-url"] }
 	end
 	if _OPTIONS["build-commit"] then
-		defines { "REALM_BUILD_COMMIT=\\\"" .. _OPTIONS["build-commit"] .. "\\\"" }
+		defines { 'REALM_BUILD_COMMIT="' .. _OPTIONS["build-commit"] .. '"' }
 	end
 	if _OPTIONS["bundled-font"] then
 		defines "YGOPRO_USE_BUNDLED_FONT"
@@ -102,7 +102,7 @@ local ygopro_config=function(static_core)
 				links { "SDL3" }
 			filter "system:not windows"
 				links { "SDL3_mixer", "FLAC", "mpg123", "vorbisfile", "vorbis", "ogg" }
-			filter "system:macosx"
+			filter "system:macosx or ios"
 				links { "CoreAudio.framework", "AudioToolbox.framework", "CoreVideo.framework", "ForceFeedback.framework", "Carbon.framework" }
 			filter {}
 		end
@@ -173,22 +173,6 @@ local ygopro_config=function(static_core)
 		links { "png", "bz2" }
 		links { "jpeg" , "z" }
 		links { "SDL3" }
-
-	filter { "system:windows", "action:not vs*" }
-		if _OPTIONS["discord"] then
-			links "discord-rpc"
-		end
-		links { "sqlite3", "event", "git2", "ssh2" }
-
-	filter "system:macosx or ios"
-		links { "ssl", "crypto" }
-		if os.istarget("macosx") then
-			files { "OSX/**", "discord_register_url_osx.m" }
-			links { "ldap", "Cocoa.framework", "IOKit.framework", "OpenGL.framework", "Security.framework", "SystemConfiguration.framework" }
-		else
-			files { "iOS/**" }
-			links { "UIKit.framework", "CoreMotion.framework", "OpenGLES.framework", "Foundation.framework", "QuartzCore.framework" }
-		end
 
 	filter { "system:macosx or ios", "configurations:Debug" }
 		links { "fmtd", "curl-d", "freetyped" }
