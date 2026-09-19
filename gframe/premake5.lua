@@ -41,9 +41,14 @@ local ygopro_config=function(static_core)
 	if _OPTIONS["discord"] and not os.istarget("ios") then
 		defines { "DISCORD_APP_ID=" .. _OPTIONS["discord"] }
 	end
-	if _OPTIONS["update-url"] then
-		defines { "UPDATE_URL=" .. _OPTIONS["update-url"] }
+
+	-- Realm of Kings client updater
+	-- build.sh passes the plain URL.
+	-- Premake adds the quotes required for a C++ string literal.
+	if _OPTIONS["update-url"] and _OPTIONS["update-url"] ~= "" then
+		defines { 'UPDATE_URL="' .. _OPTIONS["update-url"] .. '"' }
 	end
+
 	if _OPTIONS["build-commit"] then
 		defines { "REALM_BUILD_COMMIT=" .. _OPTIONS["build-commit"] }
 	end
