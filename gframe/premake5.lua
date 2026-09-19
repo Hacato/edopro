@@ -44,6 +44,9 @@ local ygopro_config=function(static_core)
 	if _OPTIONS["update-url"] then
 		defines { "UPDATE_URL=" .. _OPTIONS["update-url"] }
 	end
+	if _OPTIONS["build-commit"] then
+		defines { "REALM_BUILD_COMMIT=\\\"" .. _OPTIONS["build-commit"] .. "\\\"" }
+	end
 	if _OPTIONS["bundled-font"] then
 		defines "YGOPRO_USE_BUNDLED_FONT"
 	else
@@ -236,7 +239,6 @@ local ygopro_config=function(static_core)
 				externalincludedirs "/usr/include/irrlicht"
 		end
 	end
-
 
 	filter { "system:windows", "action:not vs*" }
 		if _OPTIONS["vcpkg-root"] then
