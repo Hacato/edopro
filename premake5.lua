@@ -65,6 +65,12 @@ newoption {
 	value = "url",
 	description = "API endpoint to check for updates from"
 }
+
+newoption {
+	trigger = "build-commit",
+	value = "commit",
+	description = "Git commit identifying this Realm of Kings client build"
+}
 newoption {
 	trigger = "no-core",
 	description = "Ignore the ocgcore subproject and only generate the solution for ygoprodll"
