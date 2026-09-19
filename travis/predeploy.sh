@@ -110,6 +110,13 @@ if [[ "$PLATFORM" == "windows" ]]; then
 	copy_if_exists ygoprodll.exe
 	compress_if_exist ygoprodll.exe
 	copy_compressed_if_exists ygoprodll.pdb
+
+	# Package the Realm of Kings Windows client update
+	if [[ -f deploy/ygoprodll.exe ]]; then
+		cd deploy
+		7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
+		cd ..
+	fi
 fi
 if [[ "$PLATFORM" == "linux" ]]; then
 	if [[ "$ARCH" == "arm64" ]]; then
