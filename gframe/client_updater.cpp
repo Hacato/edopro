@@ -22,6 +22,17 @@
 #include "curl.h"
 #include "crypto.h"
 
+// ============================================================================
+// Realm of Kings updater build diagnostic
+// TEMPORARY: proves exactly what UPDATE_URL reached this source file.
+// ============================================================================
+#define REALM_UPDATER_STRINGIFY_IMPL(x) #x
+#define REALM_UPDATER_STRINGIFY(x) REALM_UPDATER_STRINGIFY_IMPL(x)
+
+#if EDOPRO_WINDOWS
+#pragma message("REALM CHECK: client_updater.cpp compiled with UPDATE_URL = " REALM_UPDATER_STRINGIFY(UPDATE_URL))
+#endif
+
 #define LOCKFILE EPRO_TEXT("./.edopro_lock")
 #define UPDATES_FOLDER EPRO_TEXT("./updates/{}")
 
@@ -125,6 +136,7 @@ bool ClientUpdater::StartUpdate(update_callback callback, void* payload) {
 	epro::thread(&ClientUpdater::DownloadUpdate, this, payload, callback).detach();
 	return true;
 }
+
 void ClientUpdater::Unzip(void* payload, unzip_callback callback) {
 	Utils::SetThreadName("Unzip");
 #if EDOPRO_WINDOWS || EDOPRO_LINUX
@@ -259,6 +271,7 @@ ClientUpdater::ClientUpdater(epro::path_stringview override_url) {
 	if(Lock.acquired())
 		DeleteOld();
 }
+
 #if EDOPRO_WINDOWS || EDOPRO_LINUX || EDOPRO_MACOS
 ClientUpdater::FileLock::FileLock() {
 #if EDOPRO_WINDOWS
