@@ -2,6 +2,9 @@
 #include <cmath> // std::round
 #include "epro_thread.h"
 #include "config.h"
+
+#define REALM_STRINGIFY_IMPL(x) #x
+#define REALM_STRINGIFY(x) REALM_STRINGIFY_IMPL(x)
 #include "fmt.h"
 #include "logging.h"
 #include "deck_manager.h"
@@ -641,7 +644,7 @@ namespace ygo {
 #ifdef REALM_BUILD_COMMIT
 		static const std::string agent = epro::format(
 			"EDOPro-" OSSTRING "-" STR(EDOPRO_VERSION_MAJOR) "." STR(EDOPRO_VERSION_MINOR) "." STR(EDOPRO_VERSION_PATCH) "-RealmOfKings-{} {}",
-			REALM_BUILD_COMMIT,
+			REALM_STRINGIFY(REALM_BUILD_COMMIT),
 			EscapeUTF8(Utils::OSOperator->getOperatingSystemVersion())
 		);
 #else
