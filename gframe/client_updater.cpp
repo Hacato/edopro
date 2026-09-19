@@ -23,15 +23,23 @@
 #include "crypto.h"
 
 // ============================================================================
-// Realm of Kings updater build diagnostic
-// TEMPORARY: proves exactly what UPDATE_URL reached this source file.
+// Realm of Kings updater URL verification
+// TEMPORARY: forces the build to fail unless UPDATE_URL is exactly correct.
 // ============================================================================
-#define REALM_UPDATER_STRINGIFY_IMPL(x) #x
-#define REALM_UPDATER_STRINGIFY(x) REALM_UPDATER_STRINGIFY_IMPL(x)
+namespace {
+	constexpr bool RealmUpdaterStringsEqual(const char* a, const char* b) {
+		return (*a == *b) &&
+			(*a == '\0' || RealmUpdaterStringsEqual(a + 1, b + 1));
+	}
 
-#if EDOPRO_WINDOWS
-#pragma message("REALM CHECK: client_updater.cpp compiled with UPDATE_URL = " REALM_UPDATER_STRINGIFY(UPDATE_URL))
-#endif
+	static_assert(
+		RealmUpdaterStringsEqual(
+			UPDATE_URL,
+			"https://appealing-joy-production-bc20.up.railway.app/client-update"
+		),
+		"REALM CHECK FAILED: compiled UPDATE_URL does not exactly match the Realm of Kings updater endpoint"
+	);
+}
 
 #define LOCKFILE EPRO_TEXT("./.edopro_lock")
 #define UPDATES_FOLDER EPRO_TEXT("./updates/{}")
