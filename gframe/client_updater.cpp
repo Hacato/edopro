@@ -105,7 +105,9 @@ static CURLcode curlPerform(const char* url, void* payload, void* payload2 = nul
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteCallback);
 	curl_easy_setopt(curl_handle, CURLOPT_CONNECTTIMEOUT, 60L);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, payload);
-	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, ygo::Utils::GetUserAgent().data());
+	const auto& realm_user_agent = ygo::Utils::GetUserAgent();
+	ygo::ErrorLog("[Realm Updater] User-Agent: {}", realm_user_agent);
+	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, realm_user_agent.c_str());
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROXY, "*");
 	curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
 
