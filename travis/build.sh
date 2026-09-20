@@ -36,7 +36,7 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 		echo "REALM CHECK: Generated UPDATE_URL definition:"
 		grep -o 'UPDATE_URL[^;<]*' ./build/ygoprodll.vcxproj | sed 's#https://[^"<]*#<URL HIDDEN>#g' || true
 
-		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:minimal -p:EchoOff=true
+		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:normal -p:EchoOff=true
 	else
 		./premake5 $VS_GEN $BUNDLED_FONT --no-core=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit=\"$BUILD_COMMIT\"
 
@@ -46,7 +46,7 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 		echo "REALM CHECK: Generated UPDATE_URL definition:"
 		grep -o 'UPDATE_URL[^;<]*' ./build/ygoprodll.vcxproj | sed 's#https://[^"<]*#<URL HIDDEN>#g' || true
 
-		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:minimal -p:EchoOff=true
+		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:normal -p:EchoOff=true
 	fi
 	exit 0
 fi
