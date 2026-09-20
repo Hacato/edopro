@@ -130,7 +130,7 @@ static CURLcode curlPerform(const char* url, void* payload, void* payload2 = nul
 	if(res != CURLE_OK) {
 		ygo::ErrorLog(
 			"[Realm Updater] CURL FAILED: code={} message={} details={} URL={}",
-			res,
+			static_cast<int>(res),
 			curl_easy_strerror(res),
 			curl_error_buffer,
 			url
@@ -307,7 +307,7 @@ void ClientUpdater::DownloadUpdate(void* payload, update_callback callback) {
 			if(curl_result != CURLE_OK) {
 				ErrorLog(
 					"[Realm Updater] FAILED: curlPerform returned CURL code {}.",
-					curl_result
+					static_cast<int>(curl_result)
 				);
 				this_failed = failed = true;
 			} else {
@@ -397,7 +397,7 @@ void ClientUpdater::CheckUpdate() {
 
 	ErrorLog(
 		"[Realm Updater] Update check finished. has_update={} assets={}",
-		has_update,
+		has_update ? 1 : 0,
 		update_urls.size()
 	);
 }
