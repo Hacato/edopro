@@ -19,31 +19,31 @@ function copy_if_exists {
 
 function copy_compressed_if_exists {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1 ]]; then
-		tar -Jcvf deploy/$1.tgx -C bin/$ARCH/$BUILD_CONFIG $1
+        tar -Jcvf deploy/$1.tgx -C bin/$ARCH/$BUILD_CONFIG $1
     fi
 }
 
 function compress_if_exist {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1 ]]; then
-		if [[ -n "${CV2PDB:-""}" ]]; then
-			# upx doesn't like binaries touched by cv2pdb
-			./upx deploy/$1 -o deploy/compressed-$1 --force
-		else
-			./upx deploy/$1 -o deploy/compressed-$1
-		fi
+        if [[ -n "${CV2PDB:-""}" ]]; then
+            # upx doesn't like binaries touched by cv2pdb
+            ./upx deploy/$1 -o deploy/compressed-$1 --force
+        else
+            ./upx deploy/$1 -o deploy/compressed-$1
+        fi
     fi
 }
 
 function strip_if_exists {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1 ]]; then
-		$OBJCOPY --only-keep-debug bin/$ARCH/$BUILD_CONFIG/$1 bin/$ARCH/$BUILD_CONFIG/$1.debug
-        $STRIP --strip-debug --strip-unneeded  bin/$ARCH/$BUILD_CONFIG/$1
-		$OBJCOPY --add-gnu-debuglink=bin/$ARCH/$BUILD_CONFIG/$1.debug bin/$ARCH/$BUILD_CONFIG/$1
-		tar -Jcvf deploy/$1.debug.tgx -C bin/$ARCH/$BUILD_CONFIG $1.debug
-		if [[ -n "${CV2PDB:-""}" ]]; then
-			PDBNAME=`echo "$1" | cut -d'.' -f1`.pdb
-			$CV2PDB -p$PDBNAME bin/$ARCH/$BUILD_CONFIG/$1
-		fi
+        $OBJCOPY --only-keep-debug bin/$ARCH/$BUILD_CONFIG/$1 bin/$ARCH/$BUILD_CONFIG/$1.debug
+        $STRIP --strip-debug --strip-unneeded bin/$ARCH/$BUILD_CONFIG/$1
+        $OBJCOPY --add-gnu-debuglink=bin/$ARCH/$BUILD_CONFIG/$1.debug bin/$ARCH/$BUILD_CONFIG/$1
+        tar -Jcvf deploy/$1.debug.tgx -C bin/$ARCH/$BUILD_CONFIG $1.debug
+        if [[ -n "${CV2PDB:-""}" ]]; then
+            PDBNAME=`echo "$1" | cut -d'.' -f1`.pdb
+            $CV2PDB -p$PDBNAME bin/$ARCH/$BUILD_CONFIG/$1
+        fi
     fi
 }
 
@@ -84,39 +84,45 @@ function bundle_if_exists_ios {
 mkdir -p deploy
 
 if [[ "$PLATFORM" == "windows" ]]; then
-	if [[ "$ARCH" == "x86" ]] || [[ "$ARCH" == "win32" ]]; then
-		ARCH="."
-	fi
-	if [[ -n "${MINGW_LITE_VARIANT:-""}" ]]; then
-		strip_if_exists ygopro.exe
-	fi
-	copy_if_exists ygopro.exe
-	compress_if_exist ygopro.exe
-	copy_compressed_if_exists ygopro.pdb
+    if [[ "$ARCH" == "x86" ]] || [[ "$ARCH" == "win32" ]]; then
+        ARCH="."
+    fi
 
-	if [[ -n "${MINGW_LITE_VARIANT:-""}" ]]; then
-		strip_if_exists ygoprodll.exe
-	fi
-	copy_if_exists ygoprodll.exe
-	compress_if_exist ygoprodll.exe
-	copy_compressed_if_exists ygoprodll.pdb
+    if [[ -n "${MINGW_LITE_VARIANT:-""}" ]]; then
+        strip_if_exists ygopro.exe
+    fi
+    copy_if_exists ygopro.exe
+    compress_if_exist ygopro.exe
+    copy_compressed_if_exists ygopro.pdb
 
-	# Package the Realm of Kings Windows client update
-	if [[ -f deploy/ygoprodll.exe ]]; then
-		cd deploy
-		7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
+    if [[ -n "${MINGW_LITE_VARIANT:-""}" ]]; then
+        strip_if_exists ygoprodll.exe
+    fi
 
-		# Generate the MD5 required by EDOPro's ClientUpdater.
-		certutil -hashfile realm-of-kings-windows.zip MD5 \
-			| grep -E '^[0-9A-Fa-f ]{32,}$' \
-			| tr -d ' \r\n' \
-			| tr 'A-F' 'a-f' \
-			> realm-of-kings-windows.zip.md5
+    # Realm of Kings client:
+    # Keep the original executable and DO NOT UPX-compress it.
+    # This avoids producing compressed-ygoprodll.exe and gives
+    # antivirus software the clean, unpacked executable to inspect.
+    copy_if_exists ygoprodll.exe
+    copy_compressed_if_exists ygoprodll.pdb
 
-		# Generate updater metadata from this exact build.
-		# Multirole can use this same metadata when answering /client-update.
-		UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
-		cat > update.json <<EOF
+    # Package the Realm of Kings Windows client update.
+    # This ZIP contains the original, unpacked ygoprodll.exe.
+    if [[ -f deploy/ygoprodll.exe ]]; then
+        cd deploy
+        7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
+
+        # Generate the MD5 required by EDOPro's ClientUpdater.
+        certutil -hashfile realm-of-kings-windows.zip MD5 \
+            | grep -E '^[0-9A-Fa-f ]{32,}$' \
+            | tr -d ' \r\n' \
+            | tr 'A-F' 'a-f' \
+            > realm-of-kings-windows.zip.md5
+
+        # Generate updater metadata from this exact build.
+        # Multirole can use this same metadata when answering /client-update.
+        UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
+        cat > update.json <<EOF
 [
   {
     "name": "realm-of-kings-windows.zip",
@@ -126,26 +132,29 @@ if [[ "$PLATFORM" == "windows" ]]; then
 ]
 EOF
 
-		cd ..
-	fi
+        cd ..
+    fi
 fi
+
 if [[ "$PLATFORM" == "linux" ]]; then
-	if [[ "$ARCH" == "arm64" ]]; then
-		OBJCOPY="aarch64-linux-gnu-objcopy"
-		STRIP="aarch64-linux-gnu-strip"
-	fi
-	strip_if_exists ygopro
-	copy_if_exists ygopro
-	compress_if_exist ygopro
-	strip_if_exists ygoprodll
-	copy_if_exists ygoprodll
-	compress_if_exist ygoprodll
+    if [[ "$ARCH" == "arm64" ]]; then
+        OBJCOPY="aarch64-linux-gnu-objcopy"
+        STRIP="aarch64-linux-gnu-strip"
+    fi
+    strip_if_exists ygopro
+    copy_if_exists ygopro
+    compress_if_exist ygopro
+    strip_if_exists ygoprodll
+    copy_if_exists ygoprodll
+    compress_if_exist ygoprodll
 fi
+
 if [[ "$PLATFORM" == "macosx" ]]; then
-	bundle_if_exists ygopro
-	bundle_if_exists ygoprodll
+    bundle_if_exists ygopro
+    bundle_if_exists ygoprodll
 fi
+
 if [[ "$PLATFORM" == "ios" ]]; then
-	bundle_if_exists_ios ygopro
-	bundle_if_exists_ios ygoprodll
+    bundle_if_exists_ios ygopro
+    bundle_if_exists_ios ygoprodll
 fi
