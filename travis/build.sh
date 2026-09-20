@@ -28,7 +28,7 @@ fi
 
 if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 	if [[ -z "${VS_GEN:-""}" ]]; then
-		./premake5 vs2017 $BUNDLED_FONT --no-core=true --oldwindows=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit=\"$BUILD_COMMIT\"
+		./premake5 vs2017 $BUNDLED_FONT --no-core=true --oldwindows=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit="$BUILD_COMMIT"
 
 		# Realm of Kings diagnostic:
 		# Show how UPDATE_URL reached the generated Visual Studio project,
@@ -38,7 +38,7 @@ if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
 
 		msbuild.exe -m -p:Configuration=$BUILD_CONFIG -p:Platform=Win32 ./build/ygo.sln -t:ygoprodll -verbosity:normal -p:EchoOff=true
 	else
-		./premake5 $VS_GEN $BUNDLED_FONT --no-core=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit=\"$BUILD_COMMIT\"
+		./premake5 $VS_GEN $BUNDLED_FONT --no-core=true --sound=miniaudio,sfml --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit="$BUILD_COMMIT"
 
 		# Realm of Kings diagnostic:
 		# Show how UPDATE_URL reached the generated Visual Studio project,
@@ -81,7 +81,7 @@ if [[ "$TARGET_OS" == "ios" ]]; then
 	SOUND_BACKEND="miniaudio"
 fi
 
-./premake5 gmake2 $PREMAKE_FLAGS $BUNDLED_FONT --no-core=true --vcpkg-root=$VCPKG_ROOT --sound=$SOUND_BACKEND --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit=\"$BUILD_COMMIT\"
+./premake5 gmake2 $PREMAKE_FLAGS $BUNDLED_FONT --no-core=true --vcpkg-root=$VCPKG_ROOT --sound=$SOUND_BACKEND --no-joystick=true --pics=\"$PICS_URL\" --fields=\"$FIELDS_URL\" --covers=\"$COVERS_URL\" --discord=\"$DISCORD_APP_ID\" --update-url="$UPDATE_URL" --build-commit="$BUILD_COMMIT"
 
 PROCS=""
 if [[ "$TRAVIS_OS_NAME" == "macosx" ]]; then
