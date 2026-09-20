@@ -60,6 +60,67 @@ if [[ "$TARGET_OS" == "windows" ]]; then
     mv irrlicht1-8-4-1.9-custom/source/Irrlicht irrlicht/src
     rm -rf irrlicht1-8-4-1.9-custom
     rm irrlicht1-8-4-1.9-custom.zip
+
+    # ============================================================
+    # TEMPORARY IRRLICHT DIAGNOSTICS
+    #
+    # The Windows build currently fails in CIrrDeviceWin32.cpp
+    # because a COSOperator constructor is being called with
+    # arguments that do not match the available declaration.
+    #
+    # Print the relevant source into the GitHub Actions log so
+    # we can see exactly which source/header combination CI has.
+    # ============================================================
+
+    echo
+    echo "============================================================"
+    echo "REALM OF KINGS - IRRLICHT DIAGNOSTIC"
+    echo "============================================================"
+
+    echo
+    echo "----- CIrrDeviceWin32.cpp lines 1040-1090 -----"
+    if [[ -f irrlicht/src/CIrrDeviceWin32.cpp ]]; then
+        sed -n '1040,1090p' irrlicht/src/CIrrDeviceWin32.cpp || true
+    else
+        echo "ERROR: irrlicht/src/CIrrDeviceWin32.cpp was not found"
+    fi
+
+    echo
+    echo "----- COSOperator references in CIrrDeviceWin32.cpp -----"
+    if [[ -f irrlicht/src/CIrrDeviceWin32.cpp ]]; then
+        grep -n "COSOperator" irrlicht/src/CIrrDeviceWin32.cpp || true
+    fi
+
+    echo
+    echo "----- Files containing class COSOperator -----"
+    grep -R -n "class COSOperator" irrlicht/include irrlicht/src || true
+
+    echo
+    echo "----- Files containing COSOperator constructor declarations/definitions -----"
+    grep -R -n "COSOperator(" irrlicht/include irrlicht/src || true
+
+    echo
+    echo "----- COSOperatorWindows.cpp -----"
+    if [[ -f irrlicht/src/COSOperatorWindows.cpp ]]; then
+        sed -n '1,180p' irrlicht/src/COSOperatorWindows.cpp || true
+    else
+        echo "ERROR: irrlicht/src/COSOperatorWindows.cpp was not found"
+    fi
+
+    echo
+    echo "----- COSOperator.h -----"
+    if [[ -f irrlicht/src/COSOperator.h ]]; then
+        sed -n '1,180p' irrlicht/src/COSOperator.h || true
+    else
+        echo "irrlicht/src/COSOperator.h was not found at this path"
+    fi
+
+    echo
+    echo "============================================================"
+    echo "END REALM OF KINGS - IRRLICHT DIAGNOSTIC"
+    echo "============================================================"
+    echo
+
     # We will build against vcpkg-provided versions of these libs
     rm -rf irrlicht/src/bzip2 irrlicht/src/jpeglib irrlicht/src/libpng irrlicht/src/zlib
 fi
