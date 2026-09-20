@@ -2,64 +2,77 @@
 if not externalincludedirs then
 	externalincludedirs = sysincludedirs
 end
+
 newoption {
 	trigger	= "no-direct3d",
 	description = "Disable DirectX options in irrlicht if the DirectX SDK isn't installed"
 }
+
 newoption {
 	trigger = "oldwindows",
 	description = "Use some tricks to support up to windows XP sp3"
 }
+
 newoption {
 	trigger = "sound",
 	value = "backends",
 	description = "Choose sound backend",
 	description = "Sound backends for the solution, allowed values are any combination of irrklang, sdl-mixer, sdl3-mixer, sfml and miniaudio, comma separated"
 }
+
 newoption {
 	trigger = "use-mpg123",
 	description = "Use mpg123 mp3 backend instead of minimp3 (Available only when using SFML audio backend)"
 }
+
 newoption {
 	trigger = "no-joystick",
 	default = "true",
 	description = "Add base joystick compatibility (Requires SDL2)"
 }
+
 newoption {
 	trigger = "pics",
 	value = "url_template",
 	description = "Default URL for card images"
 }
+
 newoption {
 	trigger = "fields",
 	value = "url_template",
 	description = "Default URL for Field Spell backgrounds"
 }
+
 newoption {
 	trigger = "covers",
 	value = "url_template",
 	description = "Default URL for cover images"
 }
+
 newoption {
 	trigger = "prebuilt-core",
 	value = "path",
 	description = "Path to library folder containing libocgcore"
 }
+
 newoption {
 	trigger = "vcpkg-root",
 	value = "path",
 	description = "Path to vcpkg installation"
 }
+
 newoption {
 	trigger = "vcpkg-triplet",
 	value = "triplet",
 	description = "Base vcpkg triplet to use, example: \"-mingw-static\""
 }
+
 newoption {
 	trigger = "discord",
 	value = "app_id_token",
 	description = "Discord App ID for rich presence"
 }
+
 newoption {
 	trigger = "update-url",
 	value = "url",
@@ -71,15 +84,18 @@ newoption {
 	value = "commit",
 	description = "Git commit identifying this Realm of Kings client build"
 }
+
 newoption {
 	trigger = "no-core",
 	description = "Ignore the ocgcore subproject and only generate the solution for ygoprodll"
 }
+
 newoption {
 	trigger = "architecture",
 	value = "arch",
 	description = "Architecture for the solution, allowed values are x86, x64, arm64, armv7, comma separated"
 }
+
 newoption {
 	trigger = "bundled-font",
 	value = "font",
@@ -167,6 +183,14 @@ workspace "ygo"
 	end
 	staticruntime "on"
 
+	-- Realm of Kings build identity.
+	-- build.sh passes GITHUB_SHA through --build-commit.
+	-- Convert it into the compiler definition used by Utils::GetUserAgent().
+	if _OPTIONS["build-commit"] and _OPTIONS["build-commit"] ~= "" then
+		defines { "REALM_BUILD_COMMIT=" .. _OPTIONS["build-commit"] }
+		print("REALM CHECK: REALM_BUILD_COMMIT compiler definition enabled")
+	end
+
 	warnings "Extra"
 	filter { "action:vs*" }
 		disablewarnings "4100" --'identifier' : unreferenced formal parameter
@@ -226,7 +250,6 @@ workspace "ygo"
 		filter { "action:vs*" }
 			systemversion "latest"
 	end
-
 
 	if _OPTIONS["vcpkg-root"] then
 		for _,arch in ipairs(archs) do
