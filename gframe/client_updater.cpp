@@ -336,7 +336,7 @@ void ClientUpdater::DownloadUpdate(void* payload, update_callback callback) {
 
 	ErrorLog(
 		"[Realm Updater] ===== DOWNLOAD FINISHED. failed={} =====",
-		failed
+		failed.load()
 	);
 }
 
