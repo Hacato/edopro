@@ -1,6 +1,8 @@
 project "Irrlicht"
 	kind "StaticLib"
 	includedirs "include"
+	cppdialect "C++17"
+
 	filter { "system:windows" }
 		links "imm32"
 	filter { "system:haiku" }
