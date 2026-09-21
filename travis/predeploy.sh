@@ -103,30 +103,34 @@ if [[ "$PLATFORM" == "windows" ]]; then
     # Realm of Kings custom client
     # ============================================================
     #
-    # Keep the original executable and DO NOT UPX-compress it.
+    # The build target remains ygoprodll.exe.
     #
-    # This executable contains the Realm of Kings client changes
-    # and the Realm client updater.
+    # For Realm distribution, however, we package that executable
+    # as EDOPro.exe so it replaces the executable players already
+    # launch from their existing EDOPro installation.
+    #
+    # Keep the original unpacked binary. Do NOT UPX-compress it.
     #
     copy_if_exists ygoprodll.exe
     copy_compressed_if_exists ygoprodll.pdb
 
     if [[ -f deploy/ygoprodll.exe ]]; then
 
+        # Create the Realm-distribution copy.
+        cp deploy/ygoprodll.exe deploy/EDOPro.exe
+
         # ========================================================
         # 1. NORMAL REALM ENGINE UPDATE
         # ========================================================
         #
-        # This package is used by the Realm client updater.
+        # The automatic updater receives EDOPro.exe.
         #
-        # IMPORTANT:
-        # Keep this package limited to the executable. We do not
-        # want normal client updates overwriting player resources
-        # or configuration files.
+        # This lets the Realm engine replace the normal executable
+        # that the player already launches.
         #
         cd deploy
 
-        7z a -tzip realm-of-kings-windows.zip ygoprodll.exe
+        7z a -tzip realm-of-kings-windows.zip EDOPro.exe
 
         # Generate the MD5 required by EDOPro's ClientUpdater.
         certutil -hashfile realm-of-kings-windows.zip MD5 \
@@ -136,7 +140,6 @@ if [[ "$PLATFORM" == "windows" ]]; then
             > realm-of-kings-windows.zip.md5
 
         # Generate updater metadata from this exact build.
-        # Multirole uses this metadata when answering /client-update.
         UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
 
         cat > update.json <<EOF
@@ -155,26 +158,27 @@ EOF
         # 2. REALM OF KINGS STARTER PACKAGE
         # ========================================================
         #
-        # This is NOT used by the automatic updater.
+        # One-time bootstrap package.
         #
-        # It is a one-time bootstrap package for turning a normal
-        # EDOPro installation into a Realm of Kings installation.
+        # It contains:
         #
-        # The Realm resource repository remains the source of truth
-        # for user_configs.json.
+        #   EDOPro.exe
+        #   config/user_configs.json
+        #
+        # When merged into an existing EDOPro installation, the
+        # existing EDOPro.exe is replaced by the Realm engine.
         #
         STARTER_DIR="deploy/realm-of-kings-starter"
 
         rm -rf "$STARTER_DIR"
         mkdir -p "$STARTER_DIR/config"
 
-        # Add the custom Realm engine.
-        cp deploy/ygoprodll.exe "$STARTER_DIR/ygoprodll.exe"
+        # Use the same Realm-distribution executable.
+        cp deploy/EDOPro.exe "$STARTER_DIR/EDOPro.exe"
 
-        # Download the current Realm configuration directly from
-        # the Realm-Of-Kings repository.
+        # Pull the current Realm configuration from the Realm repo.
         #
-        # Failure here must NOT break normal engine deployment.
+        # A failure here does NOT break the normal engine package.
         if curl \
             --fail \
             --location \
@@ -189,7 +193,7 @@ EOF
 
             7z a -tzip \
                 ../realm-of-kings-starter-windows.zip \
-                ygoprodll.exe \
+                EDOPro.exe \
                 config/user_configs.json
 
             cd ../..
@@ -203,7 +207,7 @@ EOF
             rm -rf "$STARTER_DIR"
         fi
 
-        # The temporary staging directory is not part of deployment.
+        # Remove temporary starter staging directory.
         rm -rf "$STARTER_DIR"
     fi
 fi
