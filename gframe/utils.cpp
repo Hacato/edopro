@@ -866,11 +866,22 @@ namespace ygo {
 #if EDOPRO_WINDOWS || EDOPRO_LINUX || EDOPRO_MACOS
 		const auto& path = GetExePath();
 #if EDOPRO_WINDOWS
+		// The updater may have renamed the currently running executable to
+		// "<name>.old" and extracted a replacement at the original path.
+		// Launch a detached helper first, let this process exit, then start
+		// the replacement executable.
 		STARTUPINFO si{ sizeof(si) };
 		PROCESS_INFORMATION pi{};
-		auto command = epro::format(EPRO_TEXT("{} -C \"{}\" -l"), GetFileName(path, true), GetWorkingDirectory());
-		if(!CreateProcess(path.data(), &command[0], nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi))
+
+		auto command = epro::format(
+			EPRO_TEXT("cmd.exe /D /S /C \"ping 127.0.0.1 -n 2 >nul & start \"\" \"{}\" -C \"{}\" -l\""),
+			path,
+			GetWorkingDirectory()
+		);
+
+		if(!CreateProcess(nullptr, &command[0], nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, nullptr, &si, &pi))
 			return;
+
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 #else
