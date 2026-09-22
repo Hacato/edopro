@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 
-# Packages just the binaries into deploy
+# Packages Realm of Kings builds into deploy.
+#
+# Windows produces:
+#
+#   1. realm-of-kings-windows.zip
+#      Small automatic Realm engine update.
+#
+#   2. realm-of-kings-complete-windows.zip
+#      Complete first-time Realm of Kings client.
+#
+# The complete client is assembled from the official Project Ignis
+# Distribution, then the stock EDOPro executable is replaced with
+# the Realm of Kings executable produced by this build.
 
 set -euxo pipefail
 
@@ -36,10 +48,21 @@ function compress_if_exist {
 
 function strip_if_exists {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1 ]]; then
-        $OBJCOPY --only-keep-debug bin/$ARCH/$BUILD_CONFIG/$1 bin/$ARCH/$BUILD_CONFIG/$1.debug
-        $STRIP --strip-debug --strip-unneeded bin/$ARCH/$BUILD_CONFIG/$1
-        $OBJCOPY --add-gnu-debuglink=bin/$ARCH/$BUILD_CONFIG/$1.debug bin/$ARCH/$BUILD_CONFIG/$1
-        tar -Jcvf deploy/$1.debug.tgx -C bin/$ARCH/$BUILD_CONFIG $1.debug
+        $OBJCOPY --only-keep-debug \
+            bin/$ARCH/$BUILD_CONFIG/$1 \
+            bin/$ARCH/$BUILD_CONFIG/$1.debug
+
+        $STRIP --strip-debug --strip-unneeded \
+            bin/$ARCH/$BUILD_CONFIG/$1
+
+        $OBJCOPY \
+            --add-gnu-debuglink=bin/$ARCH/$BUILD_CONFIG/$1.debug \
+            bin/$ARCH/$BUILD_CONFIG/$1
+
+        tar -Jcvf deploy/$1.debug.tgx \
+            -C bin/$ARCH/$BUILD_CONFIG \
+            $1.debug
+
         if [[ -n "${CV2PDB:-""}" ]]; then
             PDBNAME=`echo "$1" | cut -d'.' -f1`.pdb
             $CV2PDB -p$PDBNAME bin/$ARCH/$BUILD_CONFIG/$1
@@ -50,16 +73,27 @@ function strip_if_exists {
 function bundle_if_exists {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1.app ]]; then
         mkdir -p deploy/$1.app/Contents/MacOS
-        cp bin/$ARCH/$BUILD_CONFIG/$1.app deploy/$1.app/Contents/MacOS/EDOPro
+        cp bin/$ARCH/$BUILD_CONFIG/$1.app \
+            deploy/$1.app/Contents/MacOS/EDOPro
 
         mkdir -p deploy/$1.app/Contents/Resources
-        cp gframe/ygopro.icns deploy/$1.app/Contents/Resources/edopro.icns
-        cp gframe/Info.plist deploy/$1.app/Contents/Info.plist
+        cp gframe/ygopro.icns \
+            deploy/$1.app/Contents/Resources/edopro.icns
+
+        cp gframe/Info.plist \
+            deploy/$1.app/Contents/Info.plist
 
         if [[ -f bin/$ARCH/$BUILD_CONFIG/discord-launcher ]]; then
-            mkdir -p deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
-            cp bin/$ARCH/$BUILD_CONFIG/discord-launcher deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
-            defaults write "$PWD/deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/Info.plist" "CFBundleIdentifier" "io.github.edo9300.$1.discord"
+            mkdir -p \
+                deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
+
+            cp bin/$ARCH/$BUILD_CONFIG/discord-launcher \
+                deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/MacOS
+
+            defaults write \
+                "$PWD/deploy/$1.app/Contents/MacOS/discord-launcher.app/Contents/Info.plist" \
+                "CFBundleIdentifier" \
+                "io.github.edo9300.$1.discord"
         fi
     fi
 }
@@ -67,13 +101,24 @@ function bundle_if_exists {
 function bundle_if_exists_ios {
     if [[ -f bin/$ARCH/$BUILD_CONFIG/$1.app ]]; then
         mkdir -p deploy/$1.app
-        cp bin/$ARCH/$BUILD_CONFIG/$1.app deploy/$1.app/$1
+
+        cp bin/$ARCH/$BUILD_CONFIG/$1.app \
+            deploy/$1.app/$1
+
         ldid -S deploy/$1.app/$1
+
         cp -r ios-assets/* deploy/$1.app/
-        cp gframe/ios-Info.plist deploy/$1.app/Info.plist
+
+        cp gframe/ios-Info.plist \
+            deploy/$1.app/Info.plist
+
         mkdir -p deploy/Payload
-        cp -r deploy/$1.app deploy/Payload/EDOPro.app
+
+        cp -r deploy/$1.app \
+            deploy/Payload/EDOPro.app
+
         rcodesign sign deploy/Payload/EDOPro.app
+
         cd deploy
         zip -0 -y -r EDOPro.ipa Payload
         rm -rf Payload
@@ -84,6 +129,7 @@ function bundle_if_exists_ios {
 mkdir -p deploy
 
 if [[ "$PLATFORM" == "windows" ]]; then
+
     if [[ "$ARCH" == "x86" ]] || [[ "$ARCH" == "win32" ]]; then
         ARCH="."
     fi
@@ -91,6 +137,7 @@ if [[ "$PLATFORM" == "windows" ]]; then
     if [[ -n "${MINGW_LITE_VARIANT:-""}" ]]; then
         strip_if_exists ygopro.exe
     fi
+
     copy_if_exists ygopro.exe
     compress_if_exist ygopro.exe
     copy_compressed_if_exists ygopro.pdb
@@ -100,46 +147,54 @@ if [[ "$PLATFORM" == "windows" ]]; then
     fi
 
     # ============================================================
-    # Realm of Kings custom client
+    # REALM OF KINGS CUSTOM ENGINE
     # ============================================================
     #
-    # The build target remains ygoprodll.exe.
+    # The source build target remains ygoprodll.exe.
     #
-    # For Realm distribution, however, we package that executable
-    # as EDOPro.exe so it replaces the executable players already
-    # launch from their existing EDOPro installation.
+    # Realm distributes it as EDOPro.exe.
     #
-    # Keep the original unpacked binary. Do NOT UPX-compress it.
-    #
+    # DO NOT UPX-compress the Realm executable.
+    # ============================================================
+
     copy_if_exists ygoprodll.exe
     copy_compressed_if_exists ygoprodll.pdb
 
     if [[ -f deploy/ygoprodll.exe ]]; then
 
-        # Create the Realm-distribution copy.
         cp deploy/ygoprodll.exe deploy/EDOPro.exe
 
         # ========================================================
         # 1. NORMAL REALM ENGINE UPDATE
         # ========================================================
         #
-        # The automatic updater receives EDOPro.exe.
+        # This remains intentionally small.
         #
-        # This lets the Realm engine replace the normal executable
-        # that the player already launches.
-        #
+        # Existing Realm players receive only the custom engine
+        # through the Realm automatic updater.
+        # ========================================================
+
         cd deploy
 
-        7z a -tzip realm-of-kings-windows.zip EDOPro.exe
+        rm -f realm-of-kings-windows.zip
+        rm -f realm-of-kings-windows.zip.md5
+        rm -f update.json
 
-        # Generate the MD5 required by EDOPro's ClientUpdater.
-        certutil -hashfile realm-of-kings-windows.zip MD5 \
+        7z a -tzip \
+            realm-of-kings-windows.zip \
+            EDOPro.exe
+
+        # --------------------------------------------------------
+        # Generate MD5 required by ClientUpdater
+        # --------------------------------------------------------
+
+        certutil \
+            -hashfile realm-of-kings-windows.zip MD5 \
             | grep -E '^[0-9A-Fa-f ]{32,}$' \
             | tr -d ' \r\n' \
             | tr 'A-F' 'a-f' \
             > realm-of-kings-windows.zip.md5
 
-        # Generate updater metadata from this exact build.
         UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
 
         cat > update.json <<EOF
@@ -154,72 +209,287 @@ EOF
 
         cd ..
 
+        echo
+        echo "============================================================"
+        echo "REALM ENGINE UPDATE PACKAGE CREATED"
+        echo "============================================================"
+        echo
+
         # ========================================================
-        # 2. REALM OF KINGS STARTER PACKAGE
+        # 2. COMPLETE REALM OF KINGS WINDOWS CLIENT
         # ========================================================
         #
-        # One-time bootstrap package.
+        # This is the package NEW PLAYERS download.
         #
-        # It contains:
+        # The process is:
         #
-        #   EDOPro.exe
-        #   config/user_configs.json
+        #   Project Ignis Distribution
+        #             +
+        #   Project Ignis Windows runtime/core/WindBot
+        #             +
+        #   Realm EDOPro.exe
+        #             +
+        #   Realm user_configs.json
+        #             =
+        #   Complete Realm of Kings client
         #
-        # When merged into an existing EDOPro installation, the
-        # existing EDOPro.exe is replaced by the Realm engine.
+        # Players do NOT need an existing EDOPro installation.
+        # ========================================================
+
+        COMPLETE_DIR="$PWD/deploy/realm-of-kings-complete"
+        COMPLETE_ZIP="$PWD/deploy/realm-of-kings-complete-windows.zip"
+
+        rm -rf "$COMPLETE_DIR"
+        rm -f "$COMPLETE_ZIP"
+
+        echo
+        echo "============================================================"
+        echo "REALM COMPLETE CLIENT: Starting assembly"
+        echo "============================================================"
+        echo
+
+        COMPLETE_OK=true
+
+        # --------------------------------------------------------
+        # STEP A
         #
-        STARTER_DIR="deploy/realm-of-kings-starter"
-
-        rm -rf "$STARTER_DIR"
-        mkdir -p "$STARTER_DIR/config"
-
-        # Use the same Realm-distribution executable.
-        cp deploy/EDOPro.exe "$STARTER_DIR/EDOPro.exe"
-
-        # Pull the current Realm configuration from the Realm repo.
+        # Clone the official Project Ignis Distribution.
         #
-        # A failure here does NOT break the normal engine package.
-        if curl \
-            --fail \
-            --location \
-            --silent \
-            --show-error \
-            "https://raw.githubusercontent.com/Hacato/Realm-Of-Kings/main/user_configs.json" \
-            --output "$STARTER_DIR/config/user_configs.json"; then
+        # --recurse-submodules is important because Distribution
+        # contains resource repositories as submodules.
+        # --------------------------------------------------------
 
-            echo "REALM STARTER: user_configs.json downloaded successfully"
+        if git clone \
+            --depth 1 \
+            --recurse-submodules \
+            --shallow-submodules \
+            https://github.com/ProjectIgnis/Distribution.git \
+            "$COMPLETE_DIR"; then
 
-            cd "$STARTER_DIR"
-
-            7z a -tzip \
-                ../realm-of-kings-starter-windows.zip \
-                EDOPro.exe \
-                config/user_configs.json
-
-            cd ../..
-
-            echo "REALM STARTER: realm-of-kings-starter-windows.zip created"
+            echo
+            echo "REALM COMPLETE CLIENT: Distribution downloaded"
+            echo
 
         else
-            echo "REALM STARTER WARNING: Could not download user_configs.json"
-            echo "REALM STARTER WARNING: Normal Realm engine deployment will continue"
 
-            rm -rf "$STARTER_DIR"
+            echo
+            echo "REALM COMPLETE CLIENT WARNING:"
+            echo "Could not download Project Ignis Distribution."
+            echo
+
+            COMPLETE_OK=false
         fi
 
-        # Remove temporary starter staging directory.
-        rm -rf "$STARTER_DIR"
+        # --------------------------------------------------------
+        # STEP B
+        #
+        # Let Project Ignis's own update script obtain the normal
+        # Windows runtime pieces:
+        #
+        #   stock EDOPro executable
+        #   ocgcore.dll
+        #   WindBot
+        #
+        # We deliberately let their script do this instead of
+        # duplicating their binary download logic here.
+        #
+        # Their stock EDOPro.exe will be replaced by Realm's
+        # executable immediately afterward.
+        # --------------------------------------------------------
+
+        if [[ "$COMPLETE_OK" == true ]]; then
+
+            if (
+                cd "$COMPLETE_DIR"
+                bash ./update.sh travis windows
+            ); then
+
+                echo
+                echo "REALM COMPLETE CLIENT: Ignis Windows runtime installed"
+                echo
+
+            else
+
+                echo
+                echo "REALM COMPLETE CLIENT WARNING:"
+                echo "Project Ignis update.sh failed."
+                echo
+
+                COMPLETE_OK=false
+            fi
+        fi
+
+        # --------------------------------------------------------
+        # STEP C
+        #
+        # Replace the normal EDOPro engine with the Realm engine
+        # produced by THIS SAME GitHub Actions build.
+        # --------------------------------------------------------
+
+        if [[ "$COMPLETE_OK" == true ]]; then
+
+            if [[ -f "$PWD/deploy/EDOPro.exe" ]]; then
+
+                cp -f \
+                    "$PWD/deploy/EDOPro.exe" \
+                    "$COMPLETE_DIR/EDOPro.exe"
+
+                echo
+                echo "REALM COMPLETE CLIENT: Realm engine installed"
+                echo
+
+            else
+
+                echo
+                echo "REALM COMPLETE CLIENT WARNING:"
+                echo "deploy/EDOPro.exe was not found."
+                echo
+
+                COMPLETE_OK=false
+            fi
+        fi
+
+        # --------------------------------------------------------
+        # STEP D
+        #
+        # Install Realm's user configuration.
+        #
+        # This gives new players the Realm repository/server
+        # configuration without requiring them to edit JSON.
+        # --------------------------------------------------------
+
+        if [[ "$COMPLETE_OK" == true ]]; then
+
+            mkdir -p "$COMPLETE_DIR/config"
+
+            if curl \
+                --retry 5 \
+                --connect-timeout 30 \
+                --fail \
+                --location \
+                --silent \
+                --show-error \
+                "https://raw.githubusercontent.com/Hacato/Realm-Of-Kings/main/user_configs.json" \
+                --output "$COMPLETE_DIR/config/user_configs.json"; then
+
+                echo
+                echo "REALM COMPLETE CLIENT: Realm configuration installed"
+                echo
+
+            else
+
+                echo
+                echo "REALM COMPLETE CLIENT WARNING:"
+                echo "Could not download Realm user_configs.json."
+                echo
+
+                COMPLETE_OK=false
+            fi
+        fi
+
+        # --------------------------------------------------------
+        # STEP E
+        #
+        # Remove Git metadata.
+        #
+        # Players need the game resources, not the Git history or
+        # repository internals used to assemble the package.
+        # --------------------------------------------------------
+
+        if [[ "$COMPLETE_OK" == true ]]; then
+
+            find "$COMPLETE_DIR" \
+                -name ".git" \
+                -type d \
+                -prune \
+                -exec rm -rf {} + || true
+
+            find "$COMPLETE_DIR" \
+                -name ".git" \
+                -type f \
+                -delete || true
+
+            rm -f "$COMPLETE_DIR/.gitmodules"
+            rm -f "$COMPLETE_DIR/.gitattributes"
+            rm -f "$COMPLETE_DIR/.gitignore"
+
+            echo
+            echo "REALM COMPLETE CLIENT: Git metadata removed"
+            echo
+        fi
+
+        # --------------------------------------------------------
+        # STEP F
+        #
+        # Package the COMPLETE client.
+        #
+        # We enter the staging directory first so the ZIP contains
+        # the actual game files at its root rather than another
+        # unnecessary wrapper directory.
+        # --------------------------------------------------------
+
+        if [[ "$COMPLETE_OK" == true ]]; then
+
+            (
+                cd "$COMPLETE_DIR"
+
+                7z a \
+                    -tzip \
+                    "$COMPLETE_ZIP" \
+                    ./*
+            )
+
+            echo
+            echo "============================================================"
+            echo "REALM COMPLETE CLIENT CREATED SUCCESSFULLY"
+            echo
+            echo "File:"
+            echo "  deploy/realm-of-kings-complete-windows.zip"
+            echo
+            echo "A new player can extract this ZIP and launch EDOPro.exe."
+            echo "============================================================"
+            echo
+
+        else
+
+            echo
+            echo "============================================================"
+            echo "REALM COMPLETE CLIENT WAS NOT CREATED"
+            echo
+            echo "The normal Realm engine update was still created."
+            echo "Check the warnings above for the failed bootstrap step."
+            echo "============================================================"
+            echo
+
+            rm -f "$COMPLETE_ZIP"
+        fi
+
+        # --------------------------------------------------------
+        # Remove temporary complete-client staging directory.
+        # --------------------------------------------------------
+
+        rm -rf "$COMPLETE_DIR"
+
+    else
+
+        echo
+        echo "REALM ERROR: deploy/ygoprodll.exe was not produced."
+        echo "Realm Windows packages cannot be created."
+        echo
     fi
 fi
 
 if [[ "$PLATFORM" == "linux" ]]; then
+
     if [[ "$ARCH" == "arm64" ]]; then
         OBJCOPY="aarch64-linux-gnu-objcopy"
         STRIP="aarch64-linux-gnu-strip"
     fi
+
     strip_if_exists ygopro
     copy_if_exists ygopro
     compress_if_exist ygopro
+
     strip_if_exists ygoprodll
     copy_if_exists ygoprodll
     compress_if_exist ygoprodll
