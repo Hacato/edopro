@@ -1971,6 +1971,18 @@ bool Game::MainLoop() {
 	bool was_connected = false;
 	bool update_prompted = false;
 	bool update_checked = false;
+
+#if defined(UPDATE_URL) && !EDOPRO_IOS
+	// Realm of Kings: start the client update check once when the main loop begins.
+	// The updater performs the HTTP request on its own worker thread, so this
+	// does not block the UI. Respect the user's "No client updates" setting.
+	if(!gGameConfig->noClientUpdates) {
+		ErrorLog("[Realm Updater] Starting automatic update check.");
+		gClientUpdater->CheckUpdates();
+	} else {
+		ErrorLog("[Realm Updater] Automatic update check skipped because client updates are disabled.");
+	}
+#endif
 #if (IRRLICHT_VERSION_MAJOR==1 && IRRLICHT_VERSION_MINOR==9)
 	if(auto driver_type = driver->getDriverType(); driver_type == irr::video::EDT_OGLES1 || driver_type == irr::video::EDT_OGLES2) {
 		auto SetClamp = [](irr::video::SMaterialLayer layer[irr::video::MATERIAL_MAX_TEXTURES]) {
