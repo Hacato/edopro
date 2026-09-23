@@ -283,40 +283,133 @@ EOF
         # --------------------------------------------------------
         # STEP B
         #
-        # Let Project Ignis's own update script obtain the normal
-        # Windows runtime pieces:
+        # Obtain the current official Project Ignis Windows runtime
+        # from the latest edopro-assets release.
         #
-        #   stock EDOPro executable
-        #   ocgcore.dll
-        #   WindBot
+        # Distribution's legacy update.sh still points at the old
+        # kevinlul/edopro-bin repository, so Realm deliberately does
+        # NOT call that script here.
         #
-        # We deliberately let their script do this instead of
-        # duplicating their binary download logic here.
+        # Instead we:
+        #   1. Ask GitHub for the latest edopro-assets release.
+        #   2. Find its IgnisUpdate-*-windows.zip asset.
+        #   3. Download/extract it in a temporary directory.
+        #   4. Locate EDOPro.exe so wrapper-folder layouts are safe.
+        #   5. Merge that runtime into the Distribution staging tree.
         #
-        # Their stock EDOPro.exe will be replaced by Realm's
-        # executable immediately afterward.
+        # STEP C immediately replaces the stock EDOPro.exe with the
+        # Realm executable produced by THIS SAME build.
         # --------------------------------------------------------
 
         if [[ "$COMPLETE_OK" == true ]]; then
 
-            if (
-                cd "$COMPLETE_DIR"
-                bash ./update.sh travis windows
-            ); then
+            RUNTIME_TMP="$PWD/deploy/realm-ignis-runtime"
+            RUNTIME_ZIP="$PWD/deploy/realm-ignis-runtime.zip"
+            RELEASE_JSON="$PWD/deploy/realm-ignis-release.json"
 
-                echo
-                echo "REALM COMPLETE CLIENT: Ignis Windows runtime installed"
-                echo
+            rm -rf "$RUNTIME_TMP"
+            rm -f "$RUNTIME_ZIP"
+            rm -f "$RELEASE_JSON"
+            mkdir -p "$RUNTIME_TMP"
+
+            if curl \
+                --retry 5 \
+                --connect-timeout 30 \
+                --fail \
+                --location \
+                --silent \
+                --show-error \
+                -H "Accept: application/vnd.github+json" \
+                -H "X-GitHub-Api-Version: 2022-11-28" \
+                "https://api.github.com/repos/ProjectIgnis/edopro-assets/releases/latest" \
+                --output "$RELEASE_JSON"; then
+
+                IGNIS_UPDATE_URL="$(grep -oE 'https://[^" ]+/IgnisUpdate-[^" ]+-windows\.zip' "$RELEASE_JSON" | head -n 1 || true)"
+
+                if [[ -n "$IGNIS_UPDATE_URL" ]]; then
+
+                    echo
+                    echo "REALM COMPLETE CLIENT: Found official Ignis Windows runtime"
+                    echo "  $IGNIS_UPDATE_URL"
+                    echo
+
+                    if curl \
+                        --retry 5 \
+                        --connect-timeout 30 \
+                        --fail \
+                        --location \
+                        --silent \
+                        --show-error \
+                        "$IGNIS_UPDATE_URL" \
+                        --output "$RUNTIME_ZIP"; then
+
+                        if 7z x -y "$RUNTIME_ZIP" -o"$RUNTIME_TMP"; then
+
+                            STOCK_EXE="$(find "$RUNTIME_TMP" -type f -iname 'EDOPro.exe' -print -quit)"
+
+                            if [[ -n "$STOCK_EXE" ]]; then
+
+                                RUNTIME_ROOT="$(dirname "$STOCK_EXE")"
+
+                                cp -a "$RUNTIME_ROOT"/. "$COMPLETE_DIR"/
+
+                                echo
+                                echo "REALM COMPLETE CLIENT: Ignis Windows runtime installed"
+                                echo
+
+                            else
+
+                                echo
+                                echo "REALM COMPLETE CLIENT WARNING:"
+                                echo "Official Ignis Windows update did not contain EDOPro.exe."
+                                echo
+
+                                COMPLETE_OK=false
+                            fi
+
+                        else
+
+                            echo
+                            echo "REALM COMPLETE CLIENT WARNING:"
+                            echo "Could not extract the official Ignis Windows update."
+                            echo
+
+                            COMPLETE_OK=false
+                        fi
+
+                    else
+
+                        echo
+                        echo "REALM COMPLETE CLIENT WARNING:"
+                        echo "Could not download the official Ignis Windows update."
+                        echo
+
+                        COMPLETE_OK=false
+                    fi
+
+                else
+
+                    echo
+                    echo "REALM COMPLETE CLIENT WARNING:"
+                    echo "Latest edopro-assets release has no IgnisUpdate-*-windows.zip asset."
+                    echo
+
+                    COMPLETE_OK=false
+                fi
 
             else
 
                 echo
                 echo "REALM COMPLETE CLIENT WARNING:"
-                echo "Project Ignis update.sh failed."
+                echo "Could not read the latest Project Ignis asset release."
                 echo
 
                 COMPLETE_OK=false
             fi
+
+            rm -rf "$RUNTIME_TMP"
+            rm -f "$RUNTIME_ZIP"
+            rm -f "$RELEASE_JSON"
         fi
 
         # --------------------------------------------------------
