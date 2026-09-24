@@ -179,6 +179,22 @@ local ygopro_config=function(static_core)
 		links { "jpeg" , "z" }
 		links { "SDL3" }
 
+	filter { "system:windows", "action:not vs*" }
+		if _OPTIONS["discord"] then
+			links "discord-rpc"
+		end
+		links { "sqlite3", "event", "git2", "ssh2" }
+
+	filter "system:macosx or ios"
+		links { "ssl", "crypto" }
+		if os.istarget("macosx") then
+			files { "OSX/**", "discord_register_url_osx.m" }
+			links { "ldap", "Cocoa.framework", "IOKit.framework", "OpenGL.framework", "Security.framework", "SystemConfiguration.framework" }
+		else
+			files { "iOS/**" }
+			links { "UIKit.framework", "CoreMotion.framework", "OpenGLES.framework", "Foundation.framework", "QuartzCore.framework" }
+		end
+
 	filter { "system:macosx or ios", "configurations:Debug" }
 		links { "fmtd", "curl-d", "freetyped" }
 
