@@ -22,25 +22,6 @@
 #include "curl.h"
 #include "crypto.h"
 
-// ============================================================================
-// Realm of Kings updater URL verification
-// TEMPORARY: forces the build to fail unless UPDATE_URL is exactly correct.
-// ============================================================================
-namespace {
-	constexpr bool RealmUpdaterStringsEqual(const char* a, const char* b) {
-		return (*a == *b) &&
-			(*a == '\0' || RealmUpdaterStringsEqual(a + 1, b + 1));
-	}
-
-	static_assert(
-		RealmUpdaterStringsEqual(
-			UPDATE_URL,
-			"https://appealing-joy-production-bc20.up.railway.app/client-update"
-		),
-		"REALM CHECK FAILED: compiled UPDATE_URL does not exactly match the Realm of Kings updater endpoint"
-	);
-}
-
 #define LOCKFILE EPRO_TEXT("./.edopro_lock")
 #define UPDATES_FOLDER EPRO_TEXT("./updates/{}")
 
@@ -177,27 +158,6 @@ void ClientUpdater::Unzip(void* payload, unzip_callback callback) {
 #if EDOPRO_WINDOWS
 	const auto& corepath = ygo::Utils::GetCorePath();
 	Utils::FileMove(corepath, epro::format(EPRO_TEXT("{}.old"), corepath));
-#endif
-
-	unzip_payload cbpayload{};
-	UnzipperPayload uzpl;
-	uzpl.payload = payload;
-	uzpl.cur = -1;
-	uzpl.tot = static_cast<int>(update_urls.size());
-	cbpayload.payload = &uzpl;
-
-	int i = 1;
-	for(const auto& file : update_urls) {
-		uzpl.cur = i++;
-		auto name = epro::format(UPDATES_FOLDER, ygo::Utils::ToPathString(file.name));
-		uzpl.filename = name.data();
-		ygo::Utils::UnzipArchive(name, callback, &cbpayload);
-	}
-
-#if EDOPRO_WINDOWS
-	if(!Utils::FileExists(corepath)) {
-		Utils::FileMove(epro::format(EPRO_TEXT("{}.old"), corepath), corepath);
-	}
 #endif
 
 	Utils::Reboot();
