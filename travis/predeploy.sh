@@ -225,11 +225,11 @@ if [[ "$PLATFORM" == "windows" ]]; then
 
         UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
 
-        cat > update.json <<EOF
+cat > update.json <<EOF
 [
   {
     "name": "realm-of-kings-windows.zip",
-    "url": "https://raw.githubusercontent.com/Hacato/Realm-Of-Kings-Client/travis-windows/realm-of-kings-windows.zip",
+    "url": "https://github.com/Hacato/edopro/releases/download/v0.0.1-test/realm-of-kings-windows.zip",
     "md5": "${UPDATE_MD5}"
   }
 ]
