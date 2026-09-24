@@ -191,15 +191,37 @@ if [[ "$PLATFORM" == "windows" ]]; then
             EDOPro.exe
 
         # --------------------------------------------------------
-        # Generate MD5 required by ClientUpdater
+        # Generate MD5 required by ClientUpdater.
+        #
+        # Native Windows/MSYS builds have Microsoft's certutil.exe.
+        # MinGW cross-compilation jobs run on Linux, where "certutil"
+        # is an unrelated NSS certificate utility. Use md5sum there.
         # --------------------------------------------------------
 
-        certutil \
-            -hashfile realm-of-kings-windows.zip MD5 \
-            | grep -E '^[0-9A-Fa-f ]{32,}$' \
-            | tr -d ' \r\n' \
-            | tr 'A-F' 'a-f' \
-            > realm-of-kings-windows.zip.md5
+        if command -v md5sum >/dev/null 2>&1; then
+
+            md5sum realm-of-kings-windows.zip \
+                | awk '{print $1}' \
+                | tr 'A-F' 'a-f' \
+                > realm-of-kings-windows.zip.md5
+
+        elif command -v certutil.exe >/dev/null 2>&1; then
+
+            certutil.exe \
+                -hashfile realm-of-kings-windows.zip MD5 \
+                | grep -E '^[0-9A-Fa-f ]{32,}$' \
+                | tr -d ' \r\n' \
+                | tr 'A-F' 'a-f' \
+                > realm-of-kings-windows.zip.md5
+
+        else
+
+            echo
+            echo "REALM ERROR: No supported MD5 utility was found."
+            echo
+            exit 1
+
+        fi
 
         UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
 
