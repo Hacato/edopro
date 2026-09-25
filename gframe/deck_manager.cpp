@@ -181,6 +181,16 @@ static DeckError CheckCards(const Deck::Vector& cards, LFList const* curlist,
 			if (cit->ot & 0x1 || cit->ot & 0x2 || cit->ot & 0x100)
 				break;
 			return ret.type = DeckError::UNOFFICIALCARD, ret;
+		case DuelAllowedCards::ALLOWED_CARDS_CUSTOMS: {
+			// Realm of Kings Customs: strict whitelist of OCG (0x1), TCG (0x2)
+			// and Custom (0x20) scope bits only. Mirrors Multirole's
+			// Room/Context.cpp CheckUnofficial case for ALLOWED_CARDS_CUSTOMS,
+			// so client-side and server-side validation agree.
+			constexpr uint32_t CUSTOMS_ALLOWED = 0x1 | 0x2 | 0x20;
+			if (cit->ot == 0 || (cit->ot & ~CUSTOMS_ALLOWED))
+				return ret.type = DeckError::UNOFFICIALCARD, ret;
+			break;
+		}
 		case DuelAllowedCards::ALLOWED_CARDS_ANY:
 		default:
 			break;
