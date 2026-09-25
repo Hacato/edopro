@@ -225,11 +225,24 @@ if [[ "$PLATFORM" == "windows" ]]; then
 
         UPDATE_MD5="$(cat realm-of-kings-windows.zip.md5)"
 
+        # --------------------------------------------------------
+        # IMPORTANT: this URL must point at a location that is
+        # actually refreshed by THIS SAME deploy, not a GitHub
+        # Release asset that has to be updated by hand. deploy.sh
+        # pushes everything in deploy/ (including this zip) to the
+        # $DEPLOY_REPO repo's $DEPLOY_BRANCH branch on every push to
+        # master, so raw.githubusercontent.com against that branch
+        # is always in sync with the md5 below. Pointing this at a
+        # separate GitHub Release asset (as before) goes stale the
+        # moment nobody manually re-uploads it, and every player's
+        # auto-update then fails its md5 check silently.
+        # --------------------------------------------------------
+
 cat > update.json <<EOF
 [
   {
     "name": "realm-of-kings-windows.zip",
-    "url": "https://github.com/Hacato/edopro/releases/download/v0.0.1-test/realm-of-kings-windows.zip",
+    "url": "https://raw.githubusercontent.com/Hacato/Realm-Of-Kings-Client/travis-windows/realm-of-kings-windows.zip",
     "md5": "${UPDATE_MD5}"
   }
 ]
