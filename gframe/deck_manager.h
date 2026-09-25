@@ -35,6 +35,7 @@ enum class DuelAllowedCards {
 	ALLOWED_CARDS_OCG_TCG,
 	ALLOWED_CARDS_WITH_PRERELEASE,
 	ALLOWED_CARDS_ANY
+    ALLOWED_CARDS_CUSTOMS
 };
 class DeckManager {
 private:
